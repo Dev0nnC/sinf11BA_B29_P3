@@ -4,9 +4,9 @@ shakeStrength = 0
 def on_gesture_shake():
     global shakeStrength
     shakeStrength = input.acceleration(Dimension.STRENGTH)
-    if shakeStrength < 800:
+    if shakeStrength < 1200:
         radio.send_value("shakeStrengthState", 0)
-    elif shakeStrength >= 1000 and shakeStrength < 2000:
+    elif shakeStrength >= 1200 and shakeStrength < 2000:
         radio.send_value("shakeStrengthState", 1)
     elif shakeStrength >= 2000:
         radio.send_value("shakeStrengthState", 2)
