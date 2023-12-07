@@ -11,13 +11,13 @@ def on_button_pressed_b():
 input.on_button_pressed(Button.B, on_button_pressed_b)
 
 def on_gesture_shake():
-    if input.acceleration(Dimension.X) <= 500:
+    if input.acceleration(Dimension.STRENGTH) <= 1000:
         basic.show_icon(IconNames.SMALL_DIAMOND)
         radio.send_value("shakeStrength", 0)
-    elif input.acceleration(Dimension.X) > 500 or input.acceleration(Dimension.X) <= 1000:
+    elif input.acceleration(Dimension.STRENGTH) > 1000 or input.acceleration(Dimension.STRENGTH) <= 1300:
         basic.show_icon(IconNames.SQUARE)
         radio.send_value("shakeStrength", 1)
-    elif input.acceleration(Dimension.X) > 1000:
+    elif input.acceleration(Dimension.STRENGTH) > 1300:
         basic.show_icon(IconNames.SMALL_HEART)
         radio.send_value("shakeStrength", 2)
     else:
