@@ -141,7 +141,8 @@ while True:
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
         
-    if button_a.is_pressed() and button_b.is_pressed():
+    if pin_logo.is_touched():
+        display.show(Image.HAPPY)
         display.scroll(milkDoses)
         
     message = radio.receive()
