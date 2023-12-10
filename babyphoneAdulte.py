@@ -141,6 +141,7 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
 #initialisation de variables du babyphone
 milkDoses = 0
 agitationState = 0
+soundLevel = 0
 
 while True:
     if button_a.is_pressed():
@@ -175,6 +176,9 @@ while True:
             elif (message[2] == 'a'):
                 agitationState = int(message[4])
                 usedNonceList.append(int(message[6:]))
+            elif (message[2] == 's'):
+                soundLevel = int(message[4])
+                usedNonceList.append(int(message[6:]))
 
     #USER INTERFACE
     if(agitationState ==0):
@@ -184,3 +188,8 @@ while True:
     elif(agitationState == 2):
         display.show('! ! ! !')
         music.play(music.BA_DING)
+
+    if(soundLevel == 1):
+        music.play(music.JUMP_UP)
+        display.scroll('! Loud sounds !')
+        sleep(2000)
