@@ -131,9 +131,10 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
     if len(usedNonceList) > maxCommunicationNumber - 1:
         display.scroll('RESTART PLEASE')
         return
+        
     nonce = rd.randint(1,999)
     while nonce in usedNonceList:
-        nonce = rd.randint(1,maxCommunicationNumber)
+        nonce = rd.randint(1,999)
     
     usedNonceList.append(nonce)
     return nonce
@@ -141,16 +142,24 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
 #initialisation de variables du babyphone
 milkDoses = 0
 agitationState = 0
+#OldtotalStrength = 0
+oldAgitation = 0
 soundLevel = 0
+soundState = 0
+
+x_strength = accelerometer.get_x()/1000
+y_strength = accelerometer.get_y()/1000
+z_strength = accelerometer.get_z()/1000
 
 while True:
+    display.show('B')
     if button_a.is_pressed():
         milkDoses += 1
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
-
+    
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
@@ -163,33 +172,83 @@ while True:
         display.scroll(milkDoses)
 
     
+    newX_Strength = accelerometer.get_x()/1000
+    newY_Strength = accelerometer.get_y()/1000
+    newZ_Strength = accelerometer.get_z()/1000
+
+    diffX = abs(newX_Strength - x_strength)
+    diffY = abs(newY_Strength - y_strength)
+    diffZ = abs(newZ_Strength - z_strength)
+
+    x_strength = newX_Strength
+    y_strength = newY_Strength
+    z_strength = newZ_Strength
+    
+    diff = max(diffX, diffY, diffZ)
+
+    if  diff >= 0.4 and diff < 1.5:
+        display.show(Image.SQUARE_SMALL)
+        sleep(100)
+        agitationState = 1
+    elif diff >= 1.5:
+        display.show(Image.SQUARE)
+        music.play(music.BA_DING)
+        agitationState = 2
+        sleep(100)
+    else:
+        agitationState = 0
+        sleep(100)
+
+    if agitationState != oldAgitation:
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+        agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
+        radio.send(crypt(agitationUpdate, key))
+        oldAgitation = agitationState
+
+
+    soundLevel = microphone.sound_level()
+    if(soundLevel > 80):
+        if(soundState != 1):
+            soundState = 1
+            animationCount = 0
+            while animationCount < 5:
+                display.show(Image('11111:'
+                                   '00001:'
+                                   '33301:'
+                                   '00301:'
+                                   '70301'))
+                sleep(200)
+                display.show(Image('33333:'
+                                   '00003:'
+                                   '77703:'
+                                   '00703:'
+                                   '70703'))
+                sleep(200)
+                display.show(Image('99999:'
+                                   '00009:'
+                                   '88809:'
+                                   '00809:'
+                                   '70809'))
+                sleep(200)
+                animationCount += 1
+            nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+            soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
+            radio.send(crypt(soundUpdate, key))
+            sleep(2000)
+    else:
+        if soundState != 0:
+            soundState = 0
+            nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+            soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
+            radio.send(crypt(soundUpdate, key))
+            sleep(2000)
+
     message = radio.receive()
     if message:
         message = decrypt(message, key)
         if(int(message[6:]) in usedNonceList):
             display.show(Image.HEART)
         else:
-            #display.scroll(message)
             if(message[2] == 'm'):
                 milkDoses = int(message[4])
                 usedNonceList.append(int(message[6:]))
-            elif (message[2] == 'a'):
-                agitationState = int(message[4])
-                usedNonceList.append(int(message[6:]))
-            elif (message[2] == 's'):
-                soundLevel = int(message[4])
-                usedNonceList.append(int(message[6:]))
-
-    #USER INTERFACE
-    if(agitationState ==0):
-        display.show(Image.HOUSE)
-    elif(agitationState == 1):
-        display.show(Image.SMILE)
-    elif(agitationState == 2):
-        display.show('! ! ! !')
-        music.play(music.BA_DING)
-
-    if(soundLevel == 1):
-        music.play(music.JUMP_UP)
-        display.scroll('! Loud sounds !')
-        sleep(2000)
