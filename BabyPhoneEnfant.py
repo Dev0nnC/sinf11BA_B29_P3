@@ -126,15 +126,15 @@ def decrypt(cryptedMessageStr, key):
 
 #nonce
 usedNonceList = []
-maxCommunicationNumber = 9999
+maxCommunicationNumber = 999
 def nonceGen(usedNonceList, maxCommunicationNumber):
     if len(usedNonceList) > maxCommunicationNumber - 1:
         display.scroll('RESTART PLEASE')
         return
         
-    nonce = rd.randint(1,maxCommunicationNumber)
+    nonce = rd.randint(1,999)
     while nonce in usedNonceList:
-        nonce = rd.randint(1,maxCommunicationNumber)
+        nonce = rd.randint(1,999)
     
     usedNonceList.append(nonce)
     return nonce
@@ -143,13 +143,14 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
 milkDoses = 0
 agitationState = 0
 OldtotalStrength = 0
+oldAgitation = 0
 
 x_strength = accelerometer.get_x()/1000
 y_strength = accelerometer.get_y()/1000
 z_strength = accelerometer.get_z()/1000
 
 while True:
-    
+    display.show('B')
     if button_a.is_pressed():
         milkDoses += 1
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
@@ -187,46 +188,24 @@ while True:
         display.show(Image.SQUARE_SMALL)
         sleep(100)
         agitationState = 1
-        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
-        agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
-        radio.send(crypt(agitationUpdate, key))
     elif diff >= 1.5:
         display.show(Image.SQUARE)
-        sleep(100)
         music.play(music.BA_DING)
         agitationState = 2
+        sleep(100)
+    else:
+        agitationState = 0
+        sleep(100)
+
+    if agitationState != oldAgitation:
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
         radio.send(crypt(agitationUpdate, key))
-
+        oldAgitation = agitationState
     
     message = radio.receive()
     if message:
         message = decrypt(message, key)
-        #display.scroll(message)
         if(message[2] == 'm'):
             milkDoses = int(message[4])
-            #display.scroll('Milk Update = ' + message[4])
-            #display.scroll('Full : ' + message[-1])
             usedNonceList.append(int(message[-1]))
-        elif (message[2] == 'a'):
-            agitationState = int(message[4])
-            #display.scroll('Agitation Update = ' + message[4])
-            #display.scroll('Full : ' + message)
-            if(message[4] == 1):
-                agitationState = 1
-            elif(message[4] == 2):
-                agitationState = 2   
-            usedNonceList.append(int(message[-1]))
-
-    #USER INTERFACE
-    if(agitationState ==0):
-        display.show(Image.HOUSE)
-    elif(agitationState == 1):
-        display.show(Image.SMILE)
-    elif(agitationState == 2):
-        display.show('! ! ! !')
-        music.play(music.BA_DING)
-    
-        
-    
