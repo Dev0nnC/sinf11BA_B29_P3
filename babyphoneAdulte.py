@@ -1,5 +1,8 @@
 from microbit import *
 import radio
+import random as rd
+import music
+
 radio.on()
 radio.config(group=23)
 
@@ -121,38 +124,60 @@ def decrypt(cryptedMessageStr, key):
 
     return realTextStr
 
+#nonce
+usedNonceList = []
+maxCommunicationNumber = 999
+def nonceGen(usedNonceList, maxCommunicationNumber):
+    if len(usedNonceList) > maxCommunicationNumber - 1:
+        display.scroll('RESTART PLEASE')
+        return
+    nonce = rd.randint(1,999)
+    while nonce in usedNonceList:
+        nonce = rd.randint(1,maxCommunicationNumber)
+    
+    usedNonceList.append(nonce)
+    return nonce
+
 #initialisation de variables du babyphone
 milkDoses = 0
 agitationState = 0
 
 while True:
-    #Microbit Name Display
-    display.show(Image.HOUSE)
-    
     if button_a.is_pressed():
         milkDoses += 1
-        milkUpdate = 'V_m_' + str(milkDoses)
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+        milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
 
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
-        milkUpdate = 'V_m_' + str(milkDoses)
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+        milkUpdate = 'V_m_' + str(milkDoses)  + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
         
     if pin_logo.is_touched():
         display.show(Image.HAPPY)
         display.scroll(milkDoses)
-        
+
+    
     message = radio.receive()
     if message:
         message = decrypt(message, key)
         #display.scroll(message)
         if(message[2] == 'm'):
             milkDoses = int(message[4])
-            display.scroll('Milk Update = ' + message[4])
+            usedNonceList.append(int(message[-1]))
         elif (message[2] == 'a'):
             agitationState = int(message[4])
-            display.scroll('Agitation Update = ' + message[4])
-    
+            usedNonceList.append(int(message[-1]))
+
+    #USER INTERFACE
+    if(agitationState ==0):
+        display.show(Image.HOUSE)
+    elif(agitationState == 1):
+        display.show(Image.SMILE)
+    elif(agitationState == 2):
+        display.show('! ! ! !')
+        music.play(music.BA_DING)
