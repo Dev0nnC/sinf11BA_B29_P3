@@ -168,10 +168,10 @@ while True:
         #display.scroll(message)
         if(message[2] == 'm'):
             milkDoses = int(message[4])
-            usedNonceList.append(int(message[-1]))
+            usedNonceList.append(int(message[6:]))
         elif (message[2] == 'a'):
             agitationState = int(message[4])
-            usedNonceList.append(int(message[-1]))
+            usedNonceList.append(int(message[6:]))
 
     #USER INTERFACE
     if(agitationState ==0):
