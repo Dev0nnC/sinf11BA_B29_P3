@@ -176,9 +176,53 @@ while True:
         sleep(100)
         agitationState = 1
     elif diff >= 1.5:
-        display.show(Image.SQUARE)
-        music.play(music.BA_DING)
         agitationState = 2
+        animationCount = 0
+        while animationCount < 5:
+            display.show(Image('00000:'
+                               '00000:'
+                               '00900:'
+                               '00000:'
+                               '00000'))
+            sleep(100)
+            display.show(Image('00000:'
+                               '09990:'
+                               '09790:'
+                               '09990:'
+                               '00000'))
+            sleep(100)
+            display.show(Image('99999:'
+                               '97779:'
+                               '97579:'
+                               '97779:'
+                               '99999'))
+            sleep(100)
+            display.show(Image('99999:'
+                               '95559:'
+                               '95359:'
+                               '95559:'
+                               '99999'))
+            sleep(50)
+            display.show(Image('99999:'
+                               '93339:'
+                               '93039:'
+                               '93339:'
+                               '99999'))
+            sleep(50)
+            display.show(Image('77777:'
+                               '79997:'
+                               '79097:'
+                               '79997:'
+                               '77777'))
+            sleep(50)
+            display.show(Image('55555:'
+                               '59995:'
+                               '59095:'
+                               '59995:'
+                               '55555'))
+            sleep(100)
+            
+            animationCount +=1
         sleep(100)
     else:
         agitationState = 0
@@ -237,3 +281,9 @@ while True:
             if(message[2] == 'm'):
                 milkDoses = int(message[4])
                 usedNonceList.append(int(message[6:]))
+                display.show(Image('09090:'
+                                   '90909:'
+                                   '90009:'
+                                   '09090:'
+                                   '00900'))
+                sleep(500)
