@@ -6,22 +6,7 @@ import music
 radio.on()
 radio.config(group=23)
 
-textToEncrypt = 'un assez long texte 18973 avec des chiffres'
-key0 = 'cledechiffrement'
-
-def generateKey(key0, textToEncrypt):
-    keyLength = abs(len(textToEncrypt) - len(key0))
-    key = key0
-    for i in range(keyLength):
-        if i < len(key):
-            j = i
-        else:
-            j = i - int(i/len(key)) * len(key)
-            
-        key += key[j]
-    return key
-
-key = generateKey(key0, textToEncrypt)
+key = 'cledechiffrementassezlongue'
 
 alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -142,8 +127,10 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
 #initialisation de variables du babyphone
 milkDoses = 0
 agitationState = 0
-OldtotalStrength = 0
+#OldtotalStrength = 0
 oldAgitation = 0
+soundLevel = 0
+soundState = 0
 
 x_strength = accelerometer.get_x()/1000
 y_strength = accelerometer.get_y()/1000
@@ -157,7 +144,7 @@ while True:
         milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
-
+    
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
@@ -202,7 +189,45 @@ while True:
         agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
         radio.send(crypt(agitationUpdate, key))
         oldAgitation = agitationState
-    
+
+
+    soundLevel = microphone.sound_level()
+    if(soundLevel > 80):
+        if(soundState != 1):
+            soundState = 1
+            animationCount = 0
+            while animationCount < 5:
+                display.show(Image('11111:'
+                                   '00001:'
+                                   '33301:'
+                                   '00301:'
+                                   '70301'))
+                sleep(200)
+                display.show(Image('33333:'
+                                   '00003:'
+                                   '77703:'
+                                   '00703:'
+                                   '70703'))
+                sleep(200)
+                display.show(Image('99999:'
+                                   '00009:'
+                                   '88809:'
+                                   '00809:'
+                                   '70809'))
+                sleep(200)
+                animationCount += 1
+            nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+            soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
+            radio.send(crypt(soundUpdate, key))
+            sleep(2000)
+    else:
+        if soundState != 0:
+            soundState = 0
+            nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+            soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
+            radio.send(crypt(soundUpdate, key))
+            sleep(2000)
+
     message = radio.receive()
     if message:
         message = decrypt(message, key)
