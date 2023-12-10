@@ -208,4 +208,4 @@ while True:
         message = decrypt(message, key)
         if(message[2] == 'm'):
             milkDoses = int(message[4])
-            usedNonceList.append(int(message[-1]))
+            usedNonceList.append(int(message[6:]))
