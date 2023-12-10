@@ -158,6 +158,12 @@ while True:
             if(message[2] == 'm'):
                 milkDoses = int(message[4])
                 usedNonceList.append(int(message[6:]))
+                display.show(Image('09090:'
+                                   '90909:'
+                                   '90009:'
+                                   '09090:'
+                                   '00900'))
+                sleep(500)
             elif (message[2] == 'a'):
                 agitationState = int(message[4])
                 usedNonceList.append(int(message[6:]))
@@ -245,4 +251,3 @@ while True:
             animationCount += 1
         display.scroll('Loud noises')
         sleep(2000)
-        
