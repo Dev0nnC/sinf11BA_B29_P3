@@ -206,6 +206,9 @@ while True:
     message = radio.receive()
     if message:
         message = decrypt(message, key)
-        if(message[2] == 'm'):
-            milkDoses = int(message[4])
-            usedNonceList.append(int(message[6:]))
+        if(int(message[6:]) in usedNonceList):
+            display.show(Image.HEART)
+        else:
+            if(message[2] == 'm'):
+                milkDoses = int(message[4])
+                usedNonceList.append(int(message[6:]))
