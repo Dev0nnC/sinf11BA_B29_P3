@@ -126,11 +126,15 @@ def decrypt(cryptedMessageStr, key):
 
 #nonce
 usedNonceList = []
-
-def nonceGen(usedNonceList):
-    nonce = rd.randint(1,3)
+maxCommunicationNumber = 9999
+def nonceGen(usedNonceList, maxCommunicationNumber):
+    if len(usedNonceList) > maxCommunicationNumber - 1:
+        display.scroll('RESTART PLEASE')
+        return
+        
+    nonce = rd.randint(1,maxCommunicationNumber)
     while nonce in usedNonceList:
-        nonce = rd.randint(1,3)
+        nonce = rd.randint(1,maxCommunicationNumber)
     
     usedNonceList.append(nonce)
     return nonce
@@ -145,19 +149,17 @@ y_strength = accelerometer.get_y()/1000
 z_strength = accelerometer.get_z()/1000
 
 while True:
-    #Microbit Name Display
-    display.show('B')
     
     if button_a.is_pressed():
         milkDoses += 1
-        nonce = str(nonceGen(usedNonceList))
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
 
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
-        nonce = str(nonceGen(usedNonceList))
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses)  + '_' + nonce
         radio.send(crypt(milkUpdate, key))
         display.scroll(milkDoses)
@@ -184,11 +186,19 @@ while True:
     if  diff >= 0.4 and diff < 1.5:
         display.show(Image.SQUARE_SMALL)
         sleep(100)
+        agitationState = 1
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+        agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
+        radio.send(crypt(agitationUpdate, key))
     elif diff >= 1.5:
         display.show(Image.SQUARE)
         sleep(100)
         music.play(music.BA_DING)
-        
+        agitationState = 2
+        nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
+        agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
+        radio.send(crypt(agitationUpdate, key))
+
     
     message = radio.receive()
     if message:
@@ -196,12 +206,27 @@ while True:
         #display.scroll(message)
         if(message[2] == 'm'):
             milkDoses = int(message[4])
-            display.scroll('Milk Update = ' + message[4])
-            display.scroll('Full : ' + message[-1])
+            #display.scroll('Milk Update = ' + message[4])
+            #display.scroll('Full : ' + message[-1])
             usedNonceList.append(int(message[-1]))
         elif (message[2] == 'a'):
             agitationState = int(message[4])
-            display.scroll('Agitation Update = ' + message[4])
-            display.scroll('Full : ' + message)
+            #display.scroll('Agitation Update = ' + message[4])
+            #display.scroll('Full : ' + message)
+            if(message[4] == 1):
+                agitationState = 1
+            elif(message[4] == 2):
+                agitationState = 2   
             usedNonceList.append(int(message[-1]))
+
+    #USER INTERFACE
+    if(agitationState ==0):
+        display.show(Image.HOUSE)
+    elif(agitationState == 1):
+        display.show(Image.SMILE)
+    elif(agitationState == 2):
+        display.show('! ! ! !')
+        music.play(music.BA_DING)
+    
+        
     
