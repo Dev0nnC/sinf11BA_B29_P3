@@ -171,7 +171,53 @@ while True:
     elif(agitationState == 1):
         display.show(Image.SMILE)
     elif(agitationState == 2):
-        display.show('! ! ! !')
+        music.play(music.BA_DING)
+        animationCount = 0
+        while animationCount < 5:
+            display.show(Image('00000:'
+                               '00000:'
+                               '00900:'
+                               '00000:'
+                               '00000'))
+            sleep(100)
+            display.show(Image('00000:'
+                               '09990:'
+                               '09790:'
+                               '09990:'
+                               '00000'))
+            sleep(100)
+            display.show(Image('99999:'
+                               '97779:'
+                               '97579:'
+                               '97779:'
+                               '99999'))
+            sleep(100)
+            display.show(Image('99999:'
+                               '95559:'
+                               '95359:'
+                               '95559:'
+                               '99999'))
+            sleep(50)
+            display.show(Image('99999:'
+                               '93339:'
+                               '93039:'
+                               '93339:'
+                               '99999'))
+            sleep(50)
+            display.show(Image('77777:'
+                               '79997:'
+                               '79097:'
+                               '79997:'
+                               '77777'))
+            sleep(50)
+            display.show(Image('55555:'
+                               '59995:'
+                               '59095:'
+                               '59995:'
+                               '55555'))
+            sleep(100)
+            
+            animationCount +=1
         music.play(music.BA_DING)
 
     if(soundLevel == 1):
@@ -199,3 +245,4 @@ while True:
             animationCount += 1
         display.scroll('Loud noises')
         sleep(2000)
+        
