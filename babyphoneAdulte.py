@@ -6,22 +6,7 @@ import music
 radio.on()
 radio.config(group=23)
 
-textToEncrypt = 'un assez long texte 18973 avec des chiffres'
-key0 = 'cledechiffrement'
-
-def generateKey(key0, textToEncrypt):
-    keyLength = abs(len(textToEncrypt) - len(key0))
-    key = key0
-    for i in range(keyLength):
-        if i < len(key):
-            j = i
-        else:
-            j = i - int(i/len(key)) * len(key)
-            
-        key += key[j]
-    return key
-
-key = generateKey(key0, textToEncrypt)
+key = 'cledechiffrementassezlongue'
 
 alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
