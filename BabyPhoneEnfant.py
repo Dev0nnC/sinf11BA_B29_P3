@@ -3,9 +3,6 @@ import radio
 import random as rd
 import music
 
-radio.on()
-radio.config(group=23)
-
 key = 'cledechiffrementassezlongue'
 
 alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -46,48 +43,48 @@ def numbersToLettersF(textToTranslate):
     return letterTextList
 
 # FONCTION DE CHIFFREMENT
-def crypt(textToCrypt, key):
-    crypted = []
-    for element in range(len(textToCrypt)):
-        currentLetterIndex = lettersToNumbersF(textToCrypt[element])
+def encrypt(textToEncrypt, key):
+    encrypted = []
+    for element in range(len(textToEncrypt)):
+        currentLetterIndex = lettersToNumbersF(textToEncrypt[element])
         getCurrentKey = lettersToNumbersF(key[element])
         
-        if textToCrypt[element] in alphabet:
+        if textToEncrypt[element] in alphabet:
             nextLetter = str(vigenere[getCurrentKey[0]][currentLetterIndex[0]])
         
-        elif textToCrypt[element].isdigit():
-            transformedIntoVigenereLetter = str(vigenere[getCurrentKey[0]][int(textToCrypt[element])])
+        elif textToEncrypt[element].isdigit():
+            transformedIntoVigenereLetter = str(vigenere[getCurrentKey[0]][int(textToEncrypt[element])])
             nextLetter = str(lettersToNumbersF(transformedIntoVigenereLetter)[0])
         else:
-            nextLetter = str(textToCrypt[element])
+            nextLetter = str(textToEncrypt[element])
 
-        crypted.append(nextLetter)
+        encrypted.append(nextLetter)
         
-        cryptedStr = ''
-        for char in range(len(crypted)):
-            cryptedStr += crypted[char]
-            if char < len(crypted) - 1:
-                cryptedStr += '--'
+        encryptedStr = ''
+        for char in range(len(encrypted)):
+            encryptedStr += encrypted[char]
+            if char < len(encrypted) - 1:
+                encryptedStr += '--'
 
-    return cryptedStr
+    return encryptedStr
 
 # FONCTION DE DECHIFFREMENT
-def decrypt(cryptedMessageStr, key):
-    cryptedMessage = cryptedMessageStr.split('--')
+def decrypt(encryptedMessageStr, key):
+    encryptedMessage = encryptedMessageStr.split('--')
     realText = []
-    for i in range(len(cryptedMessage)):
+    for i in range(len(encryptedMessage)):
         column = 0
         line = lettersToNumbersF(key[i])[0]
-        if cryptedMessage[i] in alphabet:
+        if encryptedMessage[i] in alphabet:
             for element in vigenere[line]:
-                if element != cryptedMessage[i]:
+                if element != encryptedMessage[i]:
                     column += 1
                 else:
                     break
             nextLetter = vigenere[0][column]
             
-        elif cryptedMessage[i].isdigit():
-            notANumber = alphabetFromNumbers[int(cryptedMessage[i])]
+        elif encryptedMessage[i].isdigit():
+            notANumber = alphabetFromNumbers[int(encryptedMessage[i])]
             column = 0
             line = lettersToNumbersF(key[i])[0]
             for element in vigenere[line]:
@@ -99,7 +96,7 @@ def decrypt(cryptedMessageStr, key):
             nextLetter = numbersFromAlphabet[fakeLetter]
             
         else:
-            nextLetter = cryptedMessage[i]
+            nextLetter = encryptedMessage[i]
         
         realText.append(nextLetter)
         
@@ -124,53 +121,66 @@ def nonceGen(usedNonceList, maxCommunicationNumber):
     usedNonceList.append(nonce)
     return nonce
 
-#initialisation de variables du babyphone
+#configuration radio
+radio.on()
+radio.config(group=23)
+
+#initialisation de variables du Be:bi
 milkDoses = 0
 agitationState = 0
-#OldtotalStrength = 0
 oldAgitation = 0
+x_Acceleration = accelerometer.get_x()/1000
+y_Acceleration = accelerometer.get_y()/1000
+z_Acceleration = accelerometer.get_z()/1000
 soundLevel = 0
 soundState = 0
 
-x_strength = accelerometer.get_x()/1000
-y_strength = accelerometer.get_y()/1000
-z_strength = accelerometer.get_z()/1000
-
 while True:
+    #Identification du Be:bi enfant
     display.show('B')
+
+    #Gestion des doses de lait
+    #Ajout d'une dose (bouton A)
     if button_a.is_pressed():
         milkDoses += 1
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
-        radio.send(crypt(milkUpdate, key))
+        radio.send(encrypt(milkUpdate, key))
         display.scroll(milkDoses)
-    
+
+    #Retrait d'une dose (bouton B)
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses)  + '_' + nonce
-        radio.send(crypt(milkUpdate, key))
+        radio.send(encrypt(milkUpdate, key))
         display.scroll(milkDoses)
-        
+
+    #consultation des doses (bouton tactile)
     if pin_logo.is_touched():
         display.show(Image.HAPPY)
         display.scroll(milkDoses)
 
-    
-    newX_Strength = accelerometer.get_x()/1000
-    newY_Strength = accelerometer.get_y()/1000
-    newZ_Strength = accelerometer.get_z()/1000
 
-    diffX = abs(newX_Strength - x_strength)
-    diffY = abs(newY_Strength - y_strength)
-    diffZ = abs(newZ_Strength - z_strength)
+    #Gestion de l'agitation
 
-    x_strength = newX_Strength
-    y_strength = newY_Strength
-    z_strength = newZ_Strength
+    #calcul de l'acceleration
+    newX_Acceleration = accelerometer.get_x()/1000
+    newY_Acceleration = accelerometer.get_y()/1000
+    newZ_Acceleration = accelerometer.get_z()/1000
+
+    diffX = abs(newX_Acceleration - x_Acceleration)
+    diffY = abs(newY_Acceleration - y_Acceleration)
+    diffZ = abs(newZ_Acceleration - z_Acceleration)
+
+    x_Acceleration = newX_Acceleration
+    y_Acceleration = newY_Acceleration
+    z_Acceleration = newZ_Acceleration
     
     diff = max(diffX, diffY, diffZ)
 
+    #Mise à jour des variables d'agitation. 
+    #0 : relativement immobile. 2 : agitation faible. 3 : agitation forte
     if  diff >= 0.4 and diff < 1.5:
         display.show(Image.SQUARE_SMALL)
         sleep(100)
@@ -228,15 +238,18 @@ while True:
         agitationState = 0
         sleep(100)
 
+    #Envoi de l'etat d'agitation au Be:bi parent (uniquement si l'etat d'agitation est changé)
     if agitationState != oldAgitation:
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         agitationUpdate = 'V_a_' + str(agitationState)  + '_' + nonce
-        radio.send(crypt(agitationUpdate, key))
+        radio.send(encrypt(agitationUpdate, key))
         oldAgitation = agitationState
 
 
+    #Gestion du volume sonore a proximité du Be:bi Enfant
     soundLevel = microphone.sound_level()
     if(soundLevel > 80):
+        #Affichage et envoi d'une alerte au cas ou le volume dépasse le seuil défini
         if(soundState != 1):
             soundState = 1
             animationCount = 0
@@ -262,23 +275,29 @@ while True:
                 animationCount += 1
             nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
             soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
-            radio.send(crypt(soundUpdate, key))
+            radio.send(encrypt(soundUpdate, key))
             sleep(2000)
     else:
         if soundState != 0:
             soundState = 0
             nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
             soundUpdate = 'V_s_' + str(soundState)  + '_' + nonce
-            radio.send(crypt(soundUpdate, key))
+            radio.send(encrypt(soundUpdate, key))
             sleep(2000)
 
+    #Reception de données par radio
     message = radio.receive()
     if message:
+        #dechiffrement du message et organisation des données dans une liste 'resultList'
         message = decrypt(message, key)
         resultList = message.split('_')
+
+        #Verification erreur/attaque par rejeu
         if(int(resultList[-1]) in usedNonceList):
             display.show(Image.HEART)
         else:
+            #distinction des types de données recues et mise à jour des variables internes.
+            #'m' : lait
             if(resultList[1] == 'm'):
                 milkDoses = int(resultList[2])
                 usedNonceList.append(int(resultList[-1]))
@@ -287,4 +306,4 @@ while True:
                                    '90009:'
                                    '09090:'
                                    '00900'))
-                sleep(500)
+                sleep(500) 
