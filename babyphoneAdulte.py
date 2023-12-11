@@ -153,8 +153,7 @@ while True:
     if pin_logo.is_touched():
         display.scroll(milkDoses)
 
-
-    #Reception d'information du microbit enfant
+    #Reception d'information du Be:bi enfant
     message = radio.receive()
     if message:
         #decryptage et organisation des données dans une liste 'resultList'
