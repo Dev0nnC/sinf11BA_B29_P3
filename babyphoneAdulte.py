@@ -3,9 +3,6 @@ import radio
 import random as rd
 import music
 
-radio.on()
-radio.config(group=23)
-
 key = 'cledechiffrementassezlongue'
 
 alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -46,48 +43,48 @@ def numbersToLettersF(textToTranslate):
     return letterTextList
 
 # FONCTION DE CHIFFREMENT
-def crypt(textToCrypt, key):
-    crypted = []
-    for element in range(len(textToCrypt)):
-        currentLetterIndex = lettersToNumbersF(textToCrypt[element])
+def encrypt(textToEncrypt, key):
+    encrypted = []
+    for element in range(len(textToEncrypt)):
+        currentLetterIndex = lettersToNumbersF(textToEncrypt[element])
         getCurrentKey = lettersToNumbersF(key[element])
         
-        if textToCrypt[element] in alphabet:
+        if textToEncrypt[element] in alphabet:
             nextLetter = str(vigenere[getCurrentKey[0]][currentLetterIndex[0]])
         
-        elif textToCrypt[element].isdigit():
-            transformedIntoVigenereLetter = str(vigenere[getCurrentKey[0]][int(textToCrypt[element])])
+        elif textToEncrypt[element].isdigit():
+            transformedIntoVigenereLetter = str(vigenere[getCurrentKey[0]][int(textToEncrypt[element])])
             nextLetter = str(lettersToNumbersF(transformedIntoVigenereLetter)[0])
         else:
-            nextLetter = str(textToCrypt[element])
+            nextLetter = str(textToEncrypt[element])
 
-        crypted.append(nextLetter)
+        encrypted.append(nextLetter)
         
-        cryptedStr = ''
-        for char in range(len(crypted)):
-            cryptedStr += crypted[char]
-            if char < len(crypted) - 1:
-                cryptedStr += '--'
+        encryptedStr = ''
+        for char in range(len(encrypted)):
+            encryptedStr += encrypted[char]
+            if char < len(encrypted) - 1:
+                encryptedStr += '--'
 
-    return cryptedStr
+    return encryptedStr
 
 # FONCTION DE DECHIFFREMENT
-def decrypt(cryptedMessageStr, key):
-    cryptedMessage = cryptedMessageStr.split('--')
+def decrypt(encryptedMessageStr, key):
+    encryptedMessage = encryptedMessageStr.split('--')
     realText = []
-    for i in range(len(cryptedMessage)):
+    for i in range(len(encryptedMessage)):
         column = 0
         line = lettersToNumbersF(key[i])[0]
-        if cryptedMessage[i] in alphabet:
+        if encryptedMessage[i] in alphabet:
             for element in vigenere[line]:
-                if element != cryptedMessage[i]:
+                if element != encryptedMessage[i]:
                     column += 1
                 else:
                     break
             nextLetter = vigenere[0][column]
             
-        elif cryptedMessage[i].isdigit():
-            notANumber = alphabetFromNumbers[int(cryptedMessage[i])]
+        elif encryptedMessage[i].isdigit():
+            notANumber = alphabetFromNumbers[int(encryptedMessage[i])]
             column = 0
             line = lettersToNumbersF(key[i])[0]
             for element in vigenere[line]:
@@ -99,7 +96,7 @@ def decrypt(cryptedMessageStr, key):
             nextLetter = numbersFromAlphabet[fakeLetter]
             
         else:
-            nextLetter = cryptedMessage[i]
+            nextLetter = encryptedMessage[i]
         
         realText.append(nextLetter)
         
@@ -114,9 +111,10 @@ usedNonceList = []
 maxCommunicationNumber = 999
 def nonceGen(usedNonceList, maxCommunicationNumber):
     if len(usedNonceList) > maxCommunicationNumber - 1:
+        #nombre maximal de communications atteinte
         display.scroll('RESTART PLEASE')
         return
-    nonce = rd.randint(1,999)
+    nonce = rd.randint(1,maxCommunicationNumber)
     while nonce in usedNonceList:
         nonce = rd.randint(1,maxCommunicationNumber)
     
@@ -128,33 +126,47 @@ milkDoses = 0
 agitationState = 0
 soundLevel = 0
 
+#configuration radio
+radio.on()
+radio.config(group=23)
+
 while True:
+    #Gestion des doses de lait
+
+    #Ajout d'une dose
     if button_a.is_pressed():
         milkDoses += 1
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses) + '_' + nonce
-        radio.send(crypt(milkUpdate, key))
+        radio.send(encrypt(milkUpdate, key))
         display.scroll(milkDoses)
 
+    #retrait d'une dose
     if button_b.is_pressed():
         milkDoses = max(0, milkDoses - 1)
         nonce = str(nonceGen(usedNonceList, maxCommunicationNumber))
         milkUpdate = 'V_m_' + str(milkDoses)  + '_' + nonce
-        radio.send(crypt(milkUpdate, key))
-        display.scroll(milkDoses)
-        
-    if pin_logo.is_touched():
-        display.show(Image.HAPPY)
+        radio.send(encrypt(milkUpdate, key))
         display.scroll(milkDoses)
 
-    
+    #consultation des doses
+    if pin_logo.is_touched():
+        display.scroll(milkDoses)
+
+
+    #Reception d'information du microbit enfant
     message = radio.receive()
     if message:
+        #decryptage et organisation des données dans une liste 'resultList'
         message = decrypt(message, key)
         resultList = message.split('_')
+
+        #verification d'erreur/attaque par rejeu
         if(resultList[-1] in usedNonceList):
             display.show(Image.HEART)
         else:
+            #identification du type de donnée recue + mise à jour des données internes. 
+            #'m' : lait ; 'a' : agitation ; 's' : niveau sonore
             if(resultList[1] == 'm'):
                 milkDoses = int(resultList[2])
                 usedNonceList.append(int(resultList[-1]))
@@ -164,18 +176,23 @@ while True:
                                    '09090:'
                                    '00900'))
                 sleep(500)
+                
             elif (resultList[1] == 'a'):
                 agitationState = int(resultList[2])
                 usedNonceList.append(int(resultList[-1]))
+                
             elif (resultList[1] == 's'):
                 soundLevel = int(resultList[2])
                 usedNonceList.append(int(resultList[-1]))
 
     #USER INTERFACE
+    #Interraction utilisateur - machine
     if(agitationState ==0):
         display.show(Image.HOUSE)
+        
     elif(agitationState == 1):
-        display.show(Image.SMILE)
+        display.show(Image.SQUARE_SMALL)
+        
     elif(agitationState == 2):
         music.play(music.BA_DING)
         animationCount = 0
