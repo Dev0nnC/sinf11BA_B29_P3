@@ -3,32 +3,26 @@ from microbit import *
 import radio
 radio.config(group=23)
 radio.on()
-connected = 0
+connected = '0'
 
 # Code in a 'while True:' loop repeats forever
+while connected != '2':
+    #sleep(500)
+    display.show('% ' + connected + '%')
+    #sleep(500)
+    msgToSend = connected
+    radio.send(msgToSend)
+    radioR = radio.receive()
+    if radioR:
+        messageRecu = radioR
+        #display.scroll('RECU' + messageRecu)
+        if messageRecu == '0':
+            #display.scroll('++')
+            connected = '1'
+            #display.scroll(connected + '**')
+        else:
+            connected = '2'
+            #display.scroll('--' + connected + '~-')
+            radio.send('2')
 while True:
-    display.show('% ' + str(connected) + '%')
-    if connected == 0 or connected == 1:
-        display.scroll('MWM')
-        radio.send('C' + str(connected))
-        radioR = radio.receive()
-        if radioR:
-            if radioR[1] == '0':
-                display.show(Image.HAPPY)
-                display.scroll('++')
-                connected = 1
-                radio.send('c1')
-            elif radioR[1] == '1':
-                display.show(Image.SMILE)
-                display.scroll('---')
-                connected == 2
-                display.scroll(connected)
-                radio.send('c2')
-    elif connected == 2:
-        display.scroll('*****')
-        display.show(Image.HOUSE)
-        sleep(5000)
-                
-            
-        
-    
+    display.show(Image.HOUSE)
